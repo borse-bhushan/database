@@ -1,9 +1,13 @@
 import socket
 
+
 class PyDBClient:
 
-    def __init__(self):
+    def __init__(self, host="127.0.0.1", port=9000):
         self.connection = None
+
+        self.host = host
+        self.port = port
 
     def create(self, data, many=False):
         pass
@@ -20,14 +24,11 @@ class PyDBClient:
     def delete(self, query):
         pass
 
-
     def ping(self):
-        self.connection.sendall("PING".encode())
+        response = self.connection.sendall("PING".encode())
+        return response.decode()
 
-    def connect(self, host='127.0.0.1', port=9000):
+    def connect(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_con:
-            server_con.connect((host, port))
+            server_con.connect((self.host, self.port))
             self.connection = server_con
-            # s.sendall(message.encode())
-            # response = s.recv(1024)
-            # return response.decode()
