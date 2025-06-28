@@ -6,8 +6,8 @@
 import os
 import sys
 import json
+from pathlib import Path
 
-from .arg_pars import parser
 from exc import CommonPYDBException, codes, err_msg
 
 
@@ -79,30 +79,32 @@ class Environment:
                     },
                 ) from exc
 
-    def load(self):
+    def setup(self):
         """
         Load environment data from a JSON file.
         """
+        self._append_path()
+        from arg_pars import args
 
-        default_file = os.path.join(os.path.dirname(__file__), "env.json")
+        default_file = os.path.join(os.path.dirname(__file__), "utils/env.json")
         self.__env.update(self.__read_file(default_file))
 
-        e_file = getattr(parser, "e_file", None)
-        print(e_file)
-        if e_file:
-            index = sys.argv.index("-e-file") + 1
-            if index < len(sys.argv):
-                file_path = sys.argv[index]
-                self.__env.update(self.__read_file(file_path))
-            else:
-                raise CommonPYDBException(
-                    code=codes.CONFIG_FILE_NOT_FOUND,
-                    message=(
-                        err_msg.CONFIG_FILE_NOT_FOUND.format(file_path=sys.argv[index])
-                        if index < len(sys.argv)
-                        else "None"
-                    ),
-                )
+        if args.e_file:
+            self.__env.update(self.__read_file(args.e_file))
+
+    @staticmethod
+    def get_base_dir():
+        """Get the base directory of the application."""
+        return Path(__file__).resolve().parent.parent
+
+    @staticmethod
+    def _append_path():
+        """
+        Append a path to the system path if it is not already present.
+        """
+        base_dir = environment.get_base_dir()
+        if str(base_dir) not in sys.path:
+            sys.path.append(str(base_dir))
 
 
 environment = Environment()

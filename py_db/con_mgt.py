@@ -1,3 +1,8 @@
+"""
+#file: con_mgt.py
+# Description: This module contains the ConnectionHandler class, which is responsible for handling incoming requests to
+"""
+
 import socketserver
 
 

@@ -3,16 +3,12 @@
 # Description: Main entry point for the application.
 """
 
-from utils.comm_fun import append_path
+from env import environment
 
-append_path()
-
+environment.setup()
 
 if __name__ == "__main__":
 
-    from utils import environment
-
-    environment.load()
     from py_db import run_server
 
     # Initialize the database

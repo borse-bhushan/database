@@ -7,7 +7,9 @@
 
 import socketserver
 
+from env import environment
 from utils import log_msg, logging
+
 from .con_mgt import ConnectionHandler
 
 
@@ -28,8 +30,11 @@ def run_server():
     """
 
     try:
-        with ThreadedTCPServer(("127.0.0.1", 9000), ConnectionHandler) as server:
-            log_msg(logging.DEBUG, "TCP Server running on 127.0.0.1:9000")
+        host = environment["HOST"]
+        port = environment["PORT"]
+
+        with ThreadedTCPServer((host, port), ConnectionHandler) as server:
+            log_msg(logging.DEBUG, f"PYDB RUNNING ON: [{host}:{port}]")
             server.serve_forever()
 
     except KeyboardInterrupt:
