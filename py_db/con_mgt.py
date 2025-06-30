@@ -111,3 +111,5 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         response: Response = py_db.run()
 
         self.send(response.generate())
+
+        self.handle()
