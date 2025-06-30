@@ -86,8 +86,8 @@ class Environment:
         self._append_path()
         from arg_pars import args
 
-        default_file = os.path.join(os.path.dirname(__file__), "utils/env.json")
-        self.__env.update(self.__read_file(default_file))
+        bas_dir = self.get_base_dir() / "utils" / "env.json"
+        self.__env.update(self.__read_file(bas_dir))
 
         if args.e_file:
             self.__env.update(self.__read_file(args.e_file))
@@ -95,7 +95,7 @@ class Environment:
     @staticmethod
     def get_base_dir():
         """Get the base directory of the application."""
-        return Path(__file__).resolve().parent.parent
+        return Path(__file__).resolve().parent
 
     @staticmethod
     def _append_path():
