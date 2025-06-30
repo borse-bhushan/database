@@ -6,6 +6,13 @@
 
 import socketserver
 
+from exc import err_msg, codes
+
+from .db import PyDB
+from .action import Action
+from .response import Response
+from .constants import ActionEnum
+
 
 class ConnectionHandler(socketserver.BaseRequestHandler):
     """Handles incoming requests to the database server.
@@ -54,12 +61,28 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
                 try:
                     query_length = int(line.split(":")[1].strip())
                 except (IndexError, ValueError):
-                    self.send("Invalid QUERY_LENGTH header")
+                    self.send(
+                        Response(
+                            act_type=ActionEnum.ERROR,
+                            resp_payload={
+                                "message": err_msg.QUERY_LENGTH,
+                                "code": codes.QUERY_LENGTH,
+                            },
+                        ).generate()
+                    )
                     return
                 break
 
         if query_length is None:
-            self.send("QUERY_LENGTH header missing")
+            self.send(
+                Response(
+                    act_type=ActionEnum.ERROR,
+                    resp_payload={
+                        "message": err_msg.MISSING_QUERY_LENGTH,
+                        "code": codes.QUERY_LENGTH,
+                    },
+                ).generate()
+            )
             return
 
         # Read the rest of the body if not fully received
@@ -74,10 +97,17 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
 
         # Example: echo back the received data length
         query_data = query_data.decode()
-        print(query_data)
-        self.send("PONG")
+        self.send_action_to_db(query_data)
 
     def send(self, data: str):
         """Send data to the client with QUERY_LENGTH header and delimiter."""
         header = f"QUERY_LENGTH: {len(data)}\r\n\r\n"
         self.request.sendall((header + data).encode())
+
+    def send_action_to_db(self, action):
+
+        py_db = PyDB(action=Action(action))
+
+        response: Response = py_db.run()
+
+        self.send(response.generate())
