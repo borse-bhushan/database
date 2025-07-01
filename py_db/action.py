@@ -3,8 +3,9 @@ import json
 
 class Action:
 
-    def __init__(self, action, query=None, payload=None):
+    def __init__(self, action, query=None, payload=None, auth=None):
 
+        self.auth = auth
         self.query = query
         self.action = action
         self.payload = payload
@@ -12,6 +13,9 @@ class Action:
     def __str__(self):
 
         act = [self.action]
+
+        if self.auth:
+            act.append(json.dumps(self.auth))
 
         if self.payload:
             act.append(json.dumps(self.payload))

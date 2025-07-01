@@ -3,10 +3,11 @@
 # Description: This module contains the ConnectionHandler class,
 # which is responsible for handling incoming requests to
 """
+
 import json
 import socketserver
 
-from exc import err_msg, codes
+from exc import err_msg, codes, base
 
 from .db import PyDB
 from .action import Action
@@ -104,12 +105,29 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         header = f"QUERY_LENGTH: {len(data)}\r\n\r\n"
         self.request.sendall((header + data).encode())
 
+    def handle_exc(self, exc: base.BaseExc):
+
+        self.send(
+            Response(
+                act_type=ActionEnum.ERROR,
+                resp_payload={
+                    "code": exc.code,
+                    "message": exc.message,
+                    "ref_data": exc.ref_data,
+                },
+            ).generate()
+        )
+
     def send_action_to_db(self, action):
 
-        py_db = PyDB(action=Action(json.loads(action)))
+        try:
+            py_db = PyDB(action=Action(**json.loads(action)))
 
-        response: Response = py_db.run()
+            response: Response = py_db.run()
 
-        self.send(response.generate())
+            self.send(response.generate())
 
-        self.handle()
+            self.handle()
+
+        except base.BaseExc as exc:
+            self.handle_exc(exc)

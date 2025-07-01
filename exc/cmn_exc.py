@@ -22,3 +22,9 @@ class DatabaseAlreadyExist(base.BaseExc):
         message = self.message.format(db_name=db_name)
 
         super().__init__(message, self.code, ref_data)
+
+
+class AuthenticationException(base.BaseExc):
+
+    code = codes.AUTHENTICATION_FAILED
+    message = err_msg.AUTHENTICATION_FAILED
