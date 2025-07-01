@@ -12,3 +12,13 @@ class CommonPYDBException(base.BaseExc):
 
     code = codes.UNKNOWN_EXCEPTION
     message = err_msg.UNKNOWN_EXCEPTION
+
+
+class DatabaseAlreadyExist(base.BaseExc):
+    code = codes.DATABASE_ALREADY_EXIST
+    message = err_msg.DATABASE_ALREADY_EXIST
+
+    def __init__(self, db_name, ref_data=None):
+        message = self.message.format(db_name=db_name)
+
+        super().__init__(message, self.code, ref_data)

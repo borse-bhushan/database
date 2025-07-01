@@ -3,20 +3,20 @@ import json
 
 class Action:
 
-    def __init__(self, req):
+    def __init__(self, action, query=None, payload=None):
 
-        action_data = json.loads(req)
-
-        self.query = action_data["query"]
-        self.type = action_data["action"]
-        self.payload = action_data["payload"]
+        self.query = query
+        self.action = action
+        self.payload = payload
 
     def __str__(self):
 
-        act = [self.type]
+        act = [self.action]
+
         if self.payload:
             act.append(json.dumps(self.payload))
+
         if self.query:
-            act.append(json.dumps(self.payload))
+            act.append(json.dumps(self.query))
 
         return f"Action({', '.join(act)})"

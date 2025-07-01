@@ -20,8 +20,8 @@ class BaseExc(Exception):
         Initialize the exception with an optional message.
         If no message is provided, use the default message.
         """
-        self.code = code
-        self.message = message
+        self.code = code or self.code
+        self.message = message or self.message
         self.ref_data = ref_data
 
         super().__init__(self.message)

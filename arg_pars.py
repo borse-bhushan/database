@@ -6,6 +6,7 @@
 import argparse
 
 PATH_TO_CONF_FILE = "Path to env.json file"
+LOAD_INITIAL_DATA = "Load initial data flag"
 
 
 def get_parser():
@@ -19,6 +20,10 @@ def get_parser():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-e", "--e-file", type=str, help=PATH_TO_CONF_FILE)
+
+    parser.add_argument(
+        "-lid", "--load-initial-data", action="store_true", help=LOAD_INITIAL_DATA
+    )
 
     return parser.parse_args()
 

@@ -16,29 +16,54 @@ class PyDB:
         log_msg(logging.DEBUG, str(self._action))
 
     def run(self):
-        if self._action.type == ActionEnum.PING:
+        if self._action.action == ActionEnum.PING:
             return Response(act_type=ActionEnum.PING, resp_payload={"message": "PONG"})
 
-        if self._action.type == ActionEnum.CREATE:
-            return self.create()
+        match self._action.action:
 
-        if self._action.type == ActionEnum.SELECT:
-            return self.select()
+            case ActionEnum.CREATE:
+                return self.create()
 
-        if self._action.type == ActionEnum.UPDATE:
-            return self.update()
+            case ActionEnum.SELECT:
+                return self.select()
 
-        if self._action.type == ActionEnum.DELETE:
-            return self.delete()
+            case ActionEnum.UPDATE:
+                return self.update()
+
+            case ActionEnum.DELETE:
+                return self.delete()
+
+            case ActionEnum.CREATE_DATABASE:
+                return self.create_database()
 
     def create(self):
-        return Response(act_type=ActionEnum.CREATE, resp_payload=self._action.payload)
+        return Response(
+            act_type=ActionEnum.CREATE,
+            resp_payload=self._action.payload,
+        )
 
     def update(self):
-        return Response(act_type=ActionEnum.UPDATE, resp_payload=self._action.payload)
+        return Response(
+            act_type=ActionEnum.UPDATE,
+            resp_payload=self._action.payload,
+        )
 
     def select(self):
-        return Response(act_type=ActionEnum.SELECT, resp_payload=self._action.query)
+        return Response(
+            act_type=ActionEnum.SELECT,
+            resp_payload=self._action.query,
+        )
 
     def delete(self):
-        return Response(act_type=ActionEnum.DELETE, resp_payload=self._action.query)
+        return Response(
+            act_type=ActionEnum.DELETE,
+            resp_payload=self._action.query,
+        )
+
+    def create_database(self):
+        self._storage_engine.create_database(self._action.payload)
+
+        return Response(
+            act_type=ActionEnum.CREATE_DATABASE,
+            resp_payload=self._action.payload,
+        )

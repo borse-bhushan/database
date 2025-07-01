@@ -3,7 +3,7 @@
 # Description: This module contains the ConnectionHandler class,
 # which is responsible for handling incoming requests to
 """
-
+import json
 import socketserver
 
 from exc import err_msg, codes
@@ -106,7 +106,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
 
     def send_action_to_db(self, action):
 
-        py_db = PyDB(action=Action(action))
+        py_db = PyDB(action=Action(json.loads(action)))
 
         response: Response = py_db.run()
 

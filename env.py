@@ -10,6 +10,8 @@ from pathlib import Path
 
 from exc import CommonPYDBException, codes, err_msg
 
+from arg_pars import args
+
 
 class Environment:
     """
@@ -79,18 +81,28 @@ class Environment:
                     },
                 ) from exc
 
-    def setup(self):
-        """
-        Load environment data from a JSON file.
-        """
-        self._append_path()
-        from arg_pars import args
+    def _load_env_var(self):
 
         bas_dir = self.get_base_dir() / "utils" / "env.json"
         self.__env.update(self.__read_file(bas_dir))
 
         if args.e_file:
             self.__env.update(self.__read_file(args.e_file))
+
+    def _load_initial_data(self):
+        from utils.load_ini_data import load_ini_data_in_database
+
+        load_ini_data_in_database(self["DATABASE"])
+
+    def setup(self):
+        """
+        Load environment data from a JSON file.
+        """
+        self._append_path()
+        self._load_env_var()
+
+        if args.load_initial_data:
+            self._load_initial_data()
 
     @staticmethod
     def get_base_dir():

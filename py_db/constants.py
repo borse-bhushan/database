@@ -6,4 +6,8 @@ class ActionEnum:
     DELETE = "DELETE"
     SELECT = "SELECT"
 
+    CREATE_DATABASE = "CREATE_DATABASE"
+
     ERROR = "ERROR"
+
+    LOGIN = "LOGIN"
