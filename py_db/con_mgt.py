@@ -12,6 +12,7 @@ from exc import err_msg, codes, base
 from .db import PyDB
 from .action import Action
 from .response import Response
+from .auth import authentication
 from .constants import ActionEnum
 
 
@@ -121,7 +122,13 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
     def send_action_to_db(self, action):
 
         try:
-            py_db = PyDB(action=Action(**json.loads(action)))
+
+            action = Action(**json.loads(action))
+
+            user_db_conf = authentication.is_authenticated(action)
+            action.user_db_conf = user_db_conf
+
+            py_db = PyDB(action=action)
 
             response: Response = py_db.run()
 

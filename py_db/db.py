@@ -6,6 +6,8 @@ from .storage import Storage
 from .response import Response
 from .constants import ActionEnum
 
+from .auth import authentication
+
 
 class PyDB:
 
@@ -92,9 +94,9 @@ class PyDB:
         if not database_conf["PASSWORD"] == self._action.payload["password"]:
             raise AuthenticationException()
 
-        import secrets
-
         return Response(
             act_type=ActionEnum.LOGIN,
-            resp_payload={"token": secrets.token_hex(16).upper()},
+            resp_payload={
+                "token": authentication.create_token(database_conf),
+            },
         )

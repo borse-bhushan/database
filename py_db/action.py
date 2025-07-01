@@ -5,10 +5,11 @@ class Action:
 
     def __init__(self, action, query=None, payload=None, auth=None):
 
-        self.auth = auth
         self.query = query
         self.action = action
         self.payload = payload
+        self.auth = auth or {}
+        self.user_db_conf = {}
 
     def __str__(self):
 

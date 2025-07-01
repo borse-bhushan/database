@@ -1,3 +1,6 @@
+from .auth import authentication
+
+
 class ActionEnum:
     PING = "PING"
 
@@ -10,4 +13,4 @@ class ActionEnum:
 
     ERROR = "ERROR"
 
-    LOGIN = "LOGIN"
+    LOGIN = authentication.add_exclude_action("LOGIN")
