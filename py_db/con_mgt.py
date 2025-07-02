@@ -15,6 +15,8 @@ from .response import Response
 from .auth import authentication
 from .constants import ActionEnum
 
+from utils import log_msg, logging
+
 
 class ConnectionHandler(socketserver.BaseRequestHandler):
     """Handles incoming requests to the database server.
@@ -36,6 +38,7 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         # Read initial chunk
         chunk = self.request.recv(1024)
         if not chunk:
+            log_msg(logging.DEBUG, f"CLOSING CONNECTION {self.client_address[0]}:{self.client_address[1]}"),
             return
 
         buffer += chunk
@@ -118,6 +121,8 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
                 },
             ).generate()
         )
+
+        self.handle()
 
     def send_action_to_db(self, action):
 

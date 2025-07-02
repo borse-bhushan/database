@@ -24,6 +24,36 @@ class DatabaseAlreadyExist(base.BaseExc):
         super().__init__(message, self.code, ref_data)
 
 
+class DatabaseNotExist(base.BaseExc):
+    code = codes.DATABASE_DOES_NOT_EXIST
+    message = err_msg.DATABASE_DOES_NOT_EXIST
+
+    def __init__(self, db_name, ref_data=None):
+        message = self.message.format(db_name=db_name)
+
+        super().__init__(message, self.code, ref_data)
+
+
+class TableDoesNotExist(base.BaseExc):
+    code = codes.TABLE_DOES_NOT_EXIST
+    message = err_msg.TABLE_DOES_NOT_EXIST
+
+    def __init__(self, db_name, ref_data=None):
+        message = self.message.format(db_name=db_name)
+
+        super().__init__(message, self.code, ref_data)
+
+
+class TableAlreadyExist(base.BaseExc):
+    code = codes.TABLE_ALREADY_EXIST
+    message = err_msg.TABLE_ALREADY_EXIST
+
+    def __init__(self, db_name, ref_data=None):
+        message = self.message.format(db_name=db_name)
+
+        super().__init__(message, self.code, ref_data)
+
+
 class AuthenticationException(base.BaseExc):
 
     code = codes.AUTHENTICATION_FAILED

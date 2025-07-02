@@ -1,5 +1,5 @@
 from utils import log_msg, logging
-from exc import AuthenticationException
+from exc import AuthenticationException, CommonPYDBException, err_msg, codes
 
 from .action import Action
 from .storage import Storage
@@ -46,14 +46,29 @@ class PyDB:
         return Response(
             ActionEnum.ERROR,
             resp_payload={
-                "message": f"{self._action.action} Not found.",
+                "message": f"'{self._action.action}' invalid action.",
             },
         )
 
     def create(self):
+
+        if not self._action.table:
+            raise CommonPYDBException(
+                code=codes.TABLE_NOT_PROVIDED,
+                message=err_msg.TABLE_NOT_PROVIDED.format(action=self._action.action),
+            )
+
+        data = self._storage_engine.insert_data(
+            table=self._action.table,
+            data=self._action.payload,
+            database=self._action.user_db_conf["NAME"],
+        )
+
+        resp_data = {"data": data, "table": self._action.table}
+
         return Response(
+            resp_payload=resp_data,
             act_type=ActionEnum.CREATE,
-            resp_payload=self._action.payload,
         )
 
     def update(self):

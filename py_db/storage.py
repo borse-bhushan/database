@@ -2,7 +2,13 @@ import os
 import json
 
 from env import environment
-from exc import DatabaseAlreadyExist
+from exc import (
+    DatabaseAlreadyExist,
+    TableDoesNotExist,
+    DatabaseNotExist,
+    TableAlreadyExist,
+)
+
 from .singleton import SingletonMeta
 
 
@@ -11,32 +17,78 @@ class Storage(metaclass=SingletonMeta):
     def __init__(self):
         self._data_folder = environment["DATA_FOLDER"]
 
-    def write_data_to_disk(self, database, table, data):
-        pass
+    def get_table_path(self, database_path, table):
+        return database_path + "/" + table + ".data"
 
-    def read_data_from_block(self, database, table, data):
-        pass
+    def is_table_exist(self, database_path, table):
+
+        table_path = self.get_table_path(database_path, table)
+
+        if os.path.exists(table_path):
+            return table_path
+
+        return False
+
+    def create_table(self, database, table, exist_ok=False):
+        db_path = self.is_db_exist(database)
+        if not db_path:
+            raise DatabaseNotExist(database)
+
+        table_path = self.is_table_exist(db_path, table)
+
+        if table_path:
+            if exist_ok:
+                return table_path
+
+            raise TableAlreadyExist()
+
+        table_path = self.get_table_path(db_path, table)
+        with open(table_path, "w") as file:
+            pass
+
+        return table_path
+
+    def insert_data(self, database, table, data):
+
+        db_path = self.is_db_exist(database)
+
+        if not db_path:
+            raise DatabaseNotExist()
+
+        table_path = self.is_table_exist(db_path, table)
+
+        if not table_path:
+            self.create_table(database, table, exist_ok=True)
+
+        with open(table_path, "a") as file:
+            import json
+
+            file.write(json.dumps(data) + "\n")
+
+        return data
 
     def get_db_path(self, db_name):
         return self._data_folder + f"/{db_name}"
 
-    def db_exist(self, db_name, not_exist_ok=True):
+    def is_db_exist(self, db_name):
         db_path = self.get_db_path(db_name=db_name)
 
         if os.path.exists(db_path):
             return db_path
 
-        if not_exist_ok:
-            return False
+        return False
 
-        raise DatabaseAlreadyExist(db_name)
-
-    def create_database(self, database_conf):
+    def create_database(self, database_conf, exist_ok=False):
 
         if not os.path.exists(self._data_folder):
             os.mkdir(self._data_folder)
 
-        db_path = self.db_exist(database_conf["NAME"])
+        db_path = self.is_db_exist(database_conf["NAME"])
+        if db_path:
+            if exist_ok:
+                return db_path
+
+            raise DatabaseAlreadyExist(database_conf["NAME"])
 
         os.mkdir(db_path)
 
@@ -46,7 +98,10 @@ class Storage(metaclass=SingletonMeta):
         return True
 
     def read_db_conf(self, db_name):
-        db_path = self.db_exist(db_name=db_name, not_exist_ok=False)
+
+        db_path = self.is_db_exist(db_name=db_name)
+        if not db_path:
+            raise DatabaseNotExist(db_name)
 
         with open(db_path + "/db_conf.json", "r") as db_conf_file:
             return json.load(db_conf_file)

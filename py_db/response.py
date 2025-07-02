@@ -8,4 +8,5 @@ class Response:
         self.resp_payload = resp_payload
 
     def generate(self):
+
         return json.dumps({"action_type": self.act_type, "payload": self.resp_payload})
