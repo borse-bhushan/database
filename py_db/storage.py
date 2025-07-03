@@ -61,7 +61,10 @@ class Storage(metaclass=SingletonMeta):
             self.create_table(database, table, exist_ok=True)
 
         with open(table_path, "a") as file:
-            import json
+
+            if not "pk" in data:
+                data["pk"] = ""
+                self.read()
 
             file.write(json.dumps(data) + "\n")
 
@@ -107,3 +110,39 @@ class Storage(metaclass=SingletonMeta):
             return json.load(db_conf_file)
 
         return False
+
+    def query(self, data: dict, query: dict):
+
+        if not query:
+            return True
+
+        for key, itm in query.items():
+
+            if data[key] == itm:
+                return True
+
+            return False
+
+    def read(self, database, table, query):
+        db_path = self.is_db_exist(database)
+        if not db_path:
+            raise DatabaseNotExist()
+
+        table_path = self.is_table_exist(db_path, table)
+        if not table_path:
+            raise TableDoesNotExist()
+
+        results = []
+        with open(table_path, "r") as table:
+
+            for line in table.readlines():
+                if not line:
+                    continue
+
+                json_data = json.loads(line)
+                if not self.query(json_data, query):
+                    continue
+
+                results.append(json_data)
+
+        return results

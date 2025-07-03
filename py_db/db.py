@@ -78,9 +78,16 @@ class PyDB:
         )
 
     def select(self):
+
+        results = self._storage_engine.read(
+            table=self._action.table,
+            query=self._action.query,
+            database=self._action.user_db_conf["NAME"],
+        )
+
         return Response(
             act_type=ActionEnum.SELECT,
-            resp_payload=self._action.query,
+            resp_payload=results,
         )
 
     def delete(self):
