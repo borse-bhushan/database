@@ -10,9 +10,14 @@ AUTHENTICATION_FAILED = "Authentication Failed."
 TABLE_NOT_PROVIDED = "Table is not provided for {action}"
 DATABASE_ALREADY_EXIST = "({db_name}) Database Already Exist."
 TABLE_ALREADY_EXIST = "({table}) Table Already Exist."
+TABLE_SCHEMA_NOT_EXIST = "({table}) Schema does not exist."
 DATABASE_DOES_NOT_EXIST = "({db_name}) Database does not exist"
 TABLE_DOES_NOT_EXIST = "({table}) Table does not exist"
 CONFIG_FILE_NOT_FOUND = "Configuration file not found ({file_path})."
 INVALID_CONFIG_JSON_FILE = (
     "Invalid JSON format in the configuration file ({file_path})."
 )
+
+FIELD_TYPE_NOT_AVAILABLE = "{f_type} Is not available"
+FIELD_VALIDATION = "For {field} which is {f_type} {val} not provided."
+FIELD_VALIDATION_VALUE = "For {field} validation {f_value} is wrong."

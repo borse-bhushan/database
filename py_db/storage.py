@@ -9,6 +9,7 @@ from exc import (
     TableAlreadyExist,
 )
 
+from .schema_gen import schema
 from .singleton import SingletonMeta
 
 
@@ -17,8 +18,9 @@ class Storage(metaclass=SingletonMeta):
     def __init__(self):
         self._data_folder = environment["DATA_FOLDER"]
 
-    def get_table_path(self, database_path, table):
-        return database_path + "/" + table + ".data"
+    def get_table_path(self, database_path, table, schema_path=False):
+        ext = ".py" if schema_path else ".data"
+        return database_path + "/" + table + ext
 
     def is_table_exist(self, database_path, table):
 
@@ -29,7 +31,7 @@ class Storage(metaclass=SingletonMeta):
 
         return False
 
-    def create_table(self, database, table, exist_ok=False):
+    def create_table(self, database: str, table: str, schema_def):
         db_path = self.is_db_exist(database)
         if not db_path:
             raise DatabaseNotExist(database)
@@ -37,14 +39,18 @@ class Storage(metaclass=SingletonMeta):
         table_path = self.is_table_exist(db_path, table)
 
         if table_path:
-            if exist_ok:
-                return table_path
-
-            raise TableAlreadyExist()
+            raise TableAlreadyExist(table)
 
         table_path = self.get_table_path(db_path, table)
         with open(table_path, "w") as file:
             pass
+
+        schema.Schema().write_schema_class_to_file(
+            class_name=table.title(),
+            schema_def=schema_def,
+            table=table,
+            database=database,
+        )
 
         return table_path
 
@@ -53,17 +59,23 @@ class Storage(metaclass=SingletonMeta):
         db_path = self.is_db_exist(database)
 
         if not db_path:
-            raise DatabaseNotExist()
+            raise DatabaseNotExist(database)
 
         table_path = self.is_table_exist(db_path, table)
 
         if not table_path:
-            self.create_table(database, table, exist_ok=True)
+            raise TableDoesNotExist(table)
+
+        TableSchema = schema.Schema().get_schema(database=database, table=table)
+
+        try:
+            TableSchema().load(data)
+        except Exception as e:
+            print(e)
 
         with open(table_path, "a") as file:
 
             if not "pk" in data:
-                data["pk"] = ""
                 self.read()
 
             file.write(json.dumps(data) + "\n")
@@ -126,11 +138,11 @@ class Storage(metaclass=SingletonMeta):
     def read(self, database, table, query):
         db_path = self.is_db_exist(database)
         if not db_path:
-            raise DatabaseNotExist()
+            raise DatabaseNotExist(database)
 
         table_path = self.is_table_exist(db_path, table)
         if not table_path:
-            raise TableDoesNotExist()
+            raise TableDoesNotExist(table)
 
         results = []
         with open(table_path, "r") as table:

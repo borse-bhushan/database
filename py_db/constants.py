@@ -4,6 +4,8 @@ from .auth import authentication
 class ActionEnum:
     PING = "PING"
 
+    CREATE_TABLE = "CREATE_TABLE"
+
     CREATE = "CREATE"
     UPDATE = "UPDATE"
     DELETE = "DELETE"

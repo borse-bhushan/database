@@ -1,0 +1,109 @@
+import os
+
+from importlib import import_module
+from exc import TableSchemaNotExist
+
+
+class Schema:
+
+    def __init__(self):
+        self.import_path = "schema.{database}.{table}"
+
+        self.init_file = "schema/{database}/__init__.py"
+        self.schema_create_path = "schema/{database}/{table}.py"
+
+    def get_schema(self, database, table):
+        try:
+            return getattr(
+                import_module(self.import_path.format(database=database, table=table)),
+                table.title(),
+            )
+        except ImportError as exe:
+            raise TableSchemaNotExist(table) from exe
+
+    def generate_marshmallow_field_code(self, field_name, field_spec):
+        type_map = {
+            "str": "fields.Str",
+            "int": "fields.Int",
+            "float": "fields.Float",
+            "bool": "fields.Bool",
+            "date": "fields.Date",
+            "datetime": "fields.DateTime",
+        }
+
+        marshmallow_type = type_map.get(field_spec["type"])
+        if not marshmallow_type:
+            raise ValueError(f"Unsupported type: {field_spec['type']}")
+
+        required = field_spec.get("required", False)
+        allow_none = field_spec.get("allow_none", False)
+        default = field_spec.get("default")
+        validators = []
+
+        if field_spec["type"] == "str":
+            if "min_length" in field_spec or "max_length" in field_spec:
+                validators.append(
+                    f"validate.Length(min={field_spec.get('min_length', 0)}, max={field_spec.get('max_length', 'None')})"
+                )
+            if "pattern" in field_spec:
+                validators.append(f"validate.Regexp(r'{field_spec['pattern']}')")
+            if "enum" in field_spec:
+                validators.append(f"validate.OneOf({field_spec['enum']})")
+
+        elif field_spec["type"] in ["int", "float"]:
+            if "min" in field_spec or "max" in field_spec:
+                validators.append(
+                    f"validate.Range(min={field_spec.get('min')}, max={field_spec.get('max')})"
+                )
+            if "enum" in field_spec:
+                validators.append(f"validate.OneOf({field_spec['enum']})")
+
+        validator_str = f"[{', '.join(validators)}]" if validators else "None"
+
+        parts = [f"{field_name} = {marshmallow_type}("]
+        parts.append(f"    required={required},")
+        parts.append(f"    allow_none={allow_none},")
+        if default is not None:
+            parts.append(f"    load_default={repr(default)},")
+            parts.append(f"    dump_default={repr(default)},")
+        if validators:
+            parts.append(f"    validate={validator_str},")
+        parts.append(")")
+        return "\n".join(parts)
+
+    def generate_validators(self, schema_def):
+        lines = []
+        unique_fields = []
+        for field_name, spec in schema_def.items():
+            if spec.get("unique", False):
+                unique_fields.append(f"'{field_name}'")
+        lines.append(f"    def get_unique(self):")
+        lines.append(f"        return [{', '.join(unique_fields)}]")
+
+        return lines
+
+    def write_schema_class_to_file(self, class_name, schema_def, database, table):
+
+        file_path = self.schema_create_path.format(database=database, table=table)
+
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        lines = [
+            "from marshmallow import Schema, fields, validate, validates, ValidationError\n",
+            f"class {class_name}(Schema):",
+        ]
+
+        for field_name, spec in schema_def.items():
+            field_code = self.generate_marshmallow_field_code(field_name, spec)
+            lines.append("    " + field_code.replace("\n", "\n    "))
+
+        validator_lines = self.generate_validators(schema_def)
+        if validator_lines:
+            lines.append("")
+            lines.extend(validator_lines)
+
+        with open(file_path, "w") as f:
+            f.write("\n".join(lines))
+
+        with open(self.init_file.format(database=database, table=table), "w") as f:
+            f.write("")

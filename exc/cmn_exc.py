@@ -18,40 +18,49 @@ class DatabaseAlreadyExist(base.BaseExc):
     code = codes.DATABASE_ALREADY_EXIST
     message = err_msg.DATABASE_ALREADY_EXIST
 
-    def __init__(self, db_name, ref_data=None):
+    def __init__(self, db_name):
         message = self.message.format(db_name=db_name)
 
-        super().__init__(message, self.code, ref_data)
+        super().__init__(message, self.code, {"db_name": db_name})
 
 
 class DatabaseNotExist(base.BaseExc):
     code = codes.DATABASE_DOES_NOT_EXIST
     message = err_msg.DATABASE_DOES_NOT_EXIST
 
-    def __init__(self, db_name, ref_data=None):
+    def __init__(self, db_name):
         message = self.message.format(db_name=db_name)
 
-        super().__init__(message, self.code, ref_data)
+        super().__init__(message, self.code, {"db_name": db_name})
 
 
 class TableDoesNotExist(base.BaseExc):
     code = codes.TABLE_DOES_NOT_EXIST
     message = err_msg.TABLE_DOES_NOT_EXIST
 
-    def __init__(self, db_name, ref_data=None):
-        message = self.message.format(db_name=db_name)
+    def __init__(self, table):
+        message = self.message.format(table=table)
 
-        super().__init__(message, self.code, ref_data)
+        super().__init__(message, self.code, {"table": table})
 
 
 class TableAlreadyExist(base.BaseExc):
     code = codes.TABLE_ALREADY_EXIST
     message = err_msg.TABLE_ALREADY_EXIST
 
-    def __init__(self, db_name, ref_data=None):
-        message = self.message.format(db_name=db_name)
+    def __init__(self, table):
+        message = self.message.format(table=table)
 
-        super().__init__(message, self.code, ref_data)
+        super().__init__(message, self.code, {"table": table})
+
+
+class TableSchemaNotExist(base.BaseExc):
+    code = codes.TABLE_SCHEMA_NOT_EXIST
+    message = err_msg.TABLE_SCHEMA_NOT_EXIST
+
+    def __init__(self, table):
+        message = self.message.format(table=table)
+        super().__init__(message, self.code, {"table": table})
 
 
 class AuthenticationException(base.BaseExc):

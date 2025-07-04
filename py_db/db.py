@@ -25,6 +25,9 @@ class PyDB:
 
         match self._action.action:
 
+            case ActionEnum.CREATE_TABLE:
+                return self.create_table()
+
             case ActionEnum.CREATE:
                 return self.create()
 
@@ -48,6 +51,18 @@ class PyDB:
             resp_payload={
                 "message": f"'{self._action.action}' invalid action.",
             },
+        )
+
+    def create_table(self):
+
+        resp_data = self._storage_engine.create_table(
+            table=self._action.table,
+            schema_def=self._action.payload,
+            database=self._action.user_db_conf["NAME"],
+        )
+        return Response(
+            resp_payload=resp_data,
+            act_type=ActionEnum.CREATE_TABLE,
         )
 
     def create(self):
