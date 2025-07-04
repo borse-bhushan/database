@@ -7,6 +7,8 @@ from exc import (
     TableDoesNotExist,
     DatabaseNotExist,
     TableAlreadyExist,
+    DataIsNotValid,
+    UniqueValueFound,
 )
 
 from .schema_gen import schema
@@ -66,18 +68,29 @@ class Storage(metaclass=SingletonMeta):
         if not table_path:
             raise TableDoesNotExist(table)
 
-        TableSchema = schema.Schema().get_schema(database=database, table=table)
+        table_schema_obj = schema.Schema().get_schema(database=database, table=table)()
 
         try:
-            TableSchema().load(data)
+            data = table_schema_obj.load(data)
         except Exception as e:
-            print(e)
+            raise DataIsNotValid(e.messages) from e
+
+        unique_fields = getattr(table_schema_obj, "get_unique", None)
+
+        data = table_schema_obj.dump(data)
+
+        if callable(unique_fields):
+            unique_fields = unique_fields()
+
+        if unique_fields and isinstance(unique_fields, list):
+            for field in unique_fields:
+                result = self.read(
+                    table=table, database=database, query={field: data[field]}
+                )
+                if result:
+                    raise UniqueValueFound(field=field, value=data[field])
 
         with open(table_path, "a") as file:
-
-            if not "pk" in data:
-                self.read()
-
             file.write(json.dumps(data) + "\n")
 
         return data

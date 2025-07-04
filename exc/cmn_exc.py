@@ -63,6 +63,27 @@ class TableSchemaNotExist(base.BaseExc):
         super().__init__(message, self.code, {"table": table})
 
 
+class DataIsNotValid(base.BaseExc):
+    code = codes.INVALID_DATA
+    message = err_msg.INVALID_DATA
+
+    def __init__(self, errors):
+        super().__init__(self.message, self.code, errors)
+
+
+class UniqueValueFound(base.BaseExc):
+
+    code = codes.INVALID_DATA
+    message = err_msg.UNIQUE_DATA_ERROR
+
+    def __init__(self, field=None, value=None, ref_data=None):
+        super().__init__(
+            code=self.code,
+            ref_data={"field": field, "value": value},
+            message=self.message.format(field=field, value=value),
+        )
+
+
 class AuthenticationException(base.BaseExc):
 
     code = codes.AUTHENTICATION_FAILED

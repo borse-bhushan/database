@@ -7,6 +7,8 @@ from .cmn_exc import (
     DatabaseNotExist,
     TableAlreadyExist,
     TableSchemaNotExist,
+    DataIsNotValid,
+    UniqueValueFound,
 )
 
 __all__ = [
@@ -19,4 +21,6 @@ __all__ = [
     "DatabaseNotExist",
     "TableAlreadyExist",
     "TableSchemaNotExist",
+    "DataIsNotValid",
+    "UniqueValueFound",
 ]

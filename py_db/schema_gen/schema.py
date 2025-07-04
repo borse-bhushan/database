@@ -29,6 +29,7 @@ class Schema:
             "bool": "fields.Bool",
             "date": "fields.Date",
             "datetime": "fields.DateTime",
+            "uuid": "fields.UUID",
         }
 
         marshmallow_type = type_map.get(field_spec["type"])
@@ -38,6 +39,7 @@ class Schema:
         required = field_spec.get("required", False)
         allow_none = field_spec.get("allow_none", False)
         default = field_spec.get("default")
+        callable_default = field_spec.get("callable_default")
         validators = []
 
         if field_spec["type"] == "str":
@@ -66,6 +68,11 @@ class Schema:
         if default is not None:
             parts.append(f"    load_default={repr(default)},")
             parts.append(f"    dump_default={repr(default)},")
+
+        if callable_default is not None:
+            parts.append(f"    load_default={callable_default},")
+            parts.append(f"    dump_default={callable_default},")
+
         if validators:
             parts.append(f"    validate={validator_str},")
         parts.append(")")
@@ -90,8 +97,15 @@ class Schema:
 
         lines = [
             "from marshmallow import Schema, fields, validate, validates, ValidationError\n",
+            "from utils.comm_fun import get_uuid",
             f"class {class_name}(Schema):",
         ]
+
+        schema_def["pk"] = {
+            "type": "uuid",
+            "unique": True,
+            "callable_default": "get_uuid",
+        }
 
         for field_name, spec in schema_def.items():
             field_code = self.generate_marshmallow_field_code(field_name, spec)
