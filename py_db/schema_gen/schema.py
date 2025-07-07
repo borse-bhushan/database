@@ -1,6 +1,9 @@
 import os
 
+import marshmallow
+
 from importlib import import_module
+
 from exc import TableSchemaNotExist
 
 
@@ -12,7 +15,7 @@ class Schema:
         self.init_file = "schema/{database}/__init__.py"
         self.table_schema = "schema/{database}/{table}.py"
 
-    def get_schema(self, database, table):
+    def get_schema(self, database, table) -> type[marshmallow.Schema]:
         try:
             return getattr(
                 import_module(self.import_path.format(database=database, table=table)),
@@ -46,6 +49,8 @@ class Schema:
         callable_default = field_spec.get("callable_default")
         validators = []
 
+        parts = [f"{field_name} = {marshmallow_type}("]
+
         if field_spec["type"] == "str":
             if "min_length" in field_spec or "max_length" in field_spec:
                 validators.append(
@@ -64,11 +69,14 @@ class Schema:
             if "enum" in field_spec:
                 validators.append(f"validate.OneOf({field_spec['enum']})")
 
+        elif field_spec["type"] == "datetime":
+            parts.append(f"    format='{field_spec.get('format', 'iso')}',")
+
         validator_str = f"[{', '.join(validators)}]" if validators else "None"
 
-        parts = [f"{field_name} = {marshmallow_type}("]
         parts.append(f"    required={required},")
         parts.append(f"    allow_none={allow_none},")
+
         if default is not None:
             parts.append(f"    load_default={repr(default)},")
             parts.append(f"    dump_default={repr(default)},")

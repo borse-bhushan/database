@@ -9,7 +9,11 @@ from exc import (
     TableAlreadyExist,
     DataIsNotValid,
     UniqueValueFound,
+    CommonPYDBException,
+    err_msg,
+    codes,
 )
+
 
 from .schema_gen import schema
 from .singleton import SingletonMeta
@@ -187,3 +191,75 @@ class Storage(metaclass=SingletonMeta):
         schema.Schema().remove(database=database, table=table)
 
         return True
+
+    def update(self, query, database, table, update_data):
+
+        db_path = self.is_db_exist(database)
+        if not db_path:
+            raise DatabaseNotExist(database)
+
+        table_path = self.is_table_exist(db_path, table)
+        if not table_path:
+            raise TableDoesNotExist(table)
+
+        if "pk" in update_data:
+            raise CommonPYDBException(
+                code=codes.UPDATE_NOT_ALLOWED_ON_PK,
+                message=err_msg.UPDATE_NOT_ALLOWED_ON_PK,
+                ref_data={
+                    "table": table,
+                    "database": database,
+                },
+            )
+
+        updated_data_lines = []
+
+        TableSchema = schema.Schema().get_schema(database=database, table=table)
+
+        table_schema = TableSchema()
+
+        unique_fields = getattr(table_schema, "get_unique", [])
+
+        validate_unique_fields = []
+        if unique_fields and callable(unique_fields):
+
+            for field in unique_fields():
+                if field in update_data:
+                    validate_unique_fields.append(field)
+
+        with open(table_path, "r") as table_file:
+
+            lines = table_file.readlines()
+
+            for index, line in enumerate(lines):
+                if not line:
+                    continue
+
+                json_data = json.loads(line)
+                if not self.query(json_data, query):
+                    continue
+
+                if validate_unique_fields:
+                    for field in validate_unique_fields:
+                        print(database, table)
+                        data = self.read(
+                            table=table,
+                            database=database,
+                            query={field: update_data[field]},
+                        )
+
+                        if data:
+                            for d in data:
+                                if d["pk"] != json_data["pk"]:
+                                    raise UniqueValueFound(field=field, value=d[field])
+
+                json_data.update(update_data)
+
+                updated_data_lines.append(json_data)
+                lines[index] = json.dumps(json_data) + "\n"
+
+        if updated_data_lines:
+            with open(table_path, "w") as table_file:
+                table_file.writelines(lines)
+
+        return updated_data_lines

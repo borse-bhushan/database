@@ -90,6 +90,14 @@ class PyDB:
         )
 
     def update(self):
+
+        self._storage_engine.update(
+            table=self._action.table,
+            query=self._action.query,
+            update_data=self._action.payload,
+            database=self._action.user_db_conf["NAME"],
+        )
+
         return Response(
             act_type=ActionEnum.UPDATE,
             resp_payload=self._action.payload,

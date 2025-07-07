@@ -16,6 +16,7 @@ TABLE_SCHEMA_NOT_EXIST = "({table}) Schema does not exist."
 DATABASE_DOES_NOT_EXIST = "({db_name}) Database does not exist"
 TABLE_DOES_NOT_EXIST = "({table}) Table does not exist"
 CONFIG_FILE_NOT_FOUND = "Configuration file not found ({file_path})."
+UPDATE_NOT_ALLOWED_ON_PK = "Cannot update pk column."
 INVALID_CONFIG_JSON_FILE = (
     "Invalid JSON format in the configuration file ({file_path})."
 )
