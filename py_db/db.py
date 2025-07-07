@@ -91,7 +91,7 @@ class PyDB:
 
     def update(self):
 
-        updated_rows = self._storage_engine.update(
+        effected_rows_count = self._storage_engine.update(
             table=self._action.table,
             query=self._action.query,
             update_data=self._action.payload,
@@ -100,7 +100,18 @@ class PyDB:
 
         return Response(
             act_type=ActionEnum.UPDATE,
-            resp_payload={"count": updated_rows},
+            resp_payload={"count": effected_rows_count},
+        )
+
+    def delete(self):
+        effected_rows_count = self._storage_engine.delete(
+            table=self._action.table,
+            query=self._action.query,
+            database=self._action.user_db_conf["NAME"],
+        )
+        return Response(
+            act_type=ActionEnum.DELETE,
+            resp_payload={"count": effected_rows_count},
         )
 
     def select(self):
@@ -114,12 +125,6 @@ class PyDB:
         return Response(
             act_type=ActionEnum.SELECT,
             resp_payload=results,
-        )
-
-    def delete(self):
-        return Response(
-            act_type=ActionEnum.DELETE,
-            resp_payload=self._action.query,
         )
 
     def create_database(self):

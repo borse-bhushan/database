@@ -250,9 +250,20 @@ class Storage(metaclass=SingletonMeta):
                         if data:
                             for row in data:
                                 if row["pk"] != json_data["pk"]:
-                                    raise UniqueValueFound(field=field, value=row[field])
+                                    raise UniqueValueFound(
+                                        field=field, value=row[field]
+                                    )
 
                 json_data.update(update_data)
+
+                table_schema_obj = schema.Schema().get_schema(
+                    database=database, table=table
+                )()
+
+                try:
+                    table_schema_obj.load(json_data, partial=True)
+                except Exception as e:
+                    raise DataIsNotValid(e.messages) from e
 
                 updated_data_lines.append(json_data)
                 lines[index] = json.dumps(json_data) + "\n"
@@ -263,6 +274,33 @@ class Storage(metaclass=SingletonMeta):
 
         return len(updated_data_lines)
 
+    def delete(self, database, table, query):
 
-    def delete_data(self, database, table, query):
-        pass
+        db_path = self.is_db_exist(database)
+        if not db_path:
+            raise DatabaseNotExist(database)
+
+        table_path = self.is_table_exist(db_path, table)
+        if not table_path:
+            raise TableDoesNotExist(table)
+
+        new_data = []
+        with open(table_path, "r") as table_file:
+
+            lines = table_file.readlines()
+
+            for line in lines:
+                if not line:
+                    continue
+
+                json_data = json.loads(line)
+                if self.query(json_data, query):
+                    continue
+
+                new_data.append(line)
+
+        if new_data:
+            with open(table_path, "w") as table_file:
+                table_file.writelines(new_data)
+
+        return len(new_data)
