@@ -241,7 +241,6 @@ class Storage(metaclass=SingletonMeta):
 
                 if validate_unique_fields:
                     for field in validate_unique_fields:
-                        print(database, table)
                         data = self.read(
                             table=table,
                             database=database,
@@ -249,9 +248,9 @@ class Storage(metaclass=SingletonMeta):
                         )
 
                         if data:
-                            for d in data:
-                                if d["pk"] != json_data["pk"]:
-                                    raise UniqueValueFound(field=field, value=d[field])
+                            for row in data:
+                                if row["pk"] != json_data["pk"]:
+                                    raise UniqueValueFound(field=field, value=row[field])
 
                 json_data.update(update_data)
 
@@ -262,4 +261,8 @@ class Storage(metaclass=SingletonMeta):
             with open(table_path, "w") as table_file:
                 table_file.writelines(lines)
 
-        return updated_data_lines
+        return len(updated_data_lines)
+
+
+    def delete_data(self, database, table, query):
+        pass
