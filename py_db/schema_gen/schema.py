@@ -10,7 +10,7 @@ class Schema:
         self.import_path = "schema.{database}.{table}"
 
         self.init_file = "schema/{database}/__init__.py"
-        self.schema_create_path = "schema/{database}/{table}.py"
+        self.table_schema = "schema/{database}/{table}.py"
 
     def get_schema(self, database, table):
         try:
@@ -20,6 +20,10 @@ class Schema:
             )
         except ImportError as exe:
             raise TableSchemaNotExist(table) from exe
+
+    def remove(self, database, table):
+        os.remove(self.table_schema.format(database=database, table=table))
+        return True
 
     def generate_marshmallow_field_code(self, field_name, field_spec):
         type_map = {
@@ -91,7 +95,7 @@ class Schema:
 
     def write_schema_class_to_file(self, class_name, schema_def, database, table):
 
-        file_path = self.schema_create_path.format(database=database, table=table)
+        file_path = self.table_schema.format(database=database, table=table)
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 

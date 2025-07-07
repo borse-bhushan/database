@@ -46,6 +46,9 @@ class PyDB:
             case ActionEnum.LOGIN:
                 return self.login()
 
+            case ActionEnum.DROP_TABLE:
+                return self.drop_table()
+
         return Response(
             ActionEnum.ERROR,
             resp_payload={
@@ -117,6 +120,16 @@ class PyDB:
         return Response(
             act_type=ActionEnum.CREATE_DATABASE,
             resp_payload=self._action.payload,
+        )
+
+    def drop_table(self):
+        self._storage_engine.drop_table(
+            table=self._action.table,
+            database=self._action.user_db_conf["NAME"],
+        )
+        return Response(
+            act_type=ActionEnum.DROP_TABLE,
+            resp_payload={},
         )
 
     def login(self):

@@ -171,3 +171,19 @@ class Storage(metaclass=SingletonMeta):
                 results.append(json_data)
 
         return results
+
+    def drop_table(self, database, table):
+        db_path = self.is_db_exist(database)
+
+        if not db_path:
+            raise DatabaseNotExist(database)
+
+        table_path = self.is_table_exist(db_path, table)
+
+        if not table_path:
+            raise TableDoesNotExist(table)
+
+        os.remove(table_path)
+        schema.Schema().remove(database=database, table=table)
+
+        return True

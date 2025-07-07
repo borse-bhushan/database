@@ -15,7 +15,7 @@
 
 ## 🗂️ Project Structure
 
-```
+```sh
 .
 ├── run.py                # Main entry point
 ├── env.py                # Environment and config loader
@@ -73,7 +73,7 @@ Clients communicate with the server using a custom protocol:
 
 Example request:
 
-```
+```proto
 QUERY_LENGTH: 42\r\n\r\n{"action": "PING", "auth": {}}
 ```
 
@@ -88,7 +88,6 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 ---
 
 **🚧 Work in progress.** Contributions and feedback are welcome! 🙌
-
 
 ## 👨‍💻 Author
 
