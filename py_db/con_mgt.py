@@ -128,6 +128,23 @@ class ConnectionHandler(socketserver.BaseRequestHandler):
         self.handle()
 
     def send_action_to_db(self, action):
+        """
+        Parse, authenticate, and process a database action request.
+
+        Steps:
+        - Parse the incoming JSON string into an Action object.
+        - Authenticate the action using the provided token.
+        - Execute the action using the PyDB engine.
+        - Send the generated response back to the client.
+        - Reinvoke the handler loop to wait for the next message.
+
+        Args:
+            action (str): JSON-encoded string representing the action to be executed.
+
+        Exceptions:
+            base.BaseExc: Catches and delegates any database or system-level exceptions
+                          to the exception handler method.
+        """
 
         try:
 
