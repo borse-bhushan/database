@@ -140,17 +140,56 @@ class Storage(metaclass=SingletonMeta):
 
         return False
 
-    def query(self, data: dict, query: dict):
+    def match_condition(self, value, condition):
+        if isinstance(condition, dict):
+            for op, cond_val in condition.items():
+                if op == "$eq":
+                    if value != cond_val:
+                        return False
+                elif op == "$ne":
+                    if value == cond_val:
+                        return False
+                elif op == "$gt":
+                    if value <= cond_val:
+                        return False
+                elif op == "$gte":
+                    if value < cond_val:
+                        return False
+                elif op == "$lt":
+                    if value >= cond_val:
+                        return False
+                elif op == "$lte":
+                    if value > cond_val:
+                        return False
+                elif op == "$in":
+                    if value not in cond_val:
+                        return False
+                elif op == "$nin":
+                    if value in cond_val:
+                        return False
+                else:
+                    raise ValueError(f"Unsupported operator: {op}")
+            return True
+        else:
+            return value == condition
 
+    def query(self, row: dict, query: dict) -> bool:
+        """
+        Match a row against a MongoDB-style query.
+
+        Supports: $eq, $ne, $gt, $gte, $lt, $lte, $in, $nin
+        """
         if not query:
             return True
 
-        for key, itm in query.items():
+        for key, condition in query.items():
+            if key not in row:
+                return False
 
-            if data[key] == itm:
-                return True
+            if not self.match_condition(row[key], condition):
+                return False
 
-            return False
+        return True
 
     def read(self, database, table, query):
         db_path = self.is_db_exist(database)
