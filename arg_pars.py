@@ -1,5 +1,4 @@
 """
-# utils/arg_pars.py
 # Description: Argument parser for command line arguments.
 """
 

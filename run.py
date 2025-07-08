@@ -1,5 +1,4 @@
 """
-# File: run.py
 # Description: Main entry point for the application.
 """
 

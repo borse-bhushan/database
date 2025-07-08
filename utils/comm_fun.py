@@ -15,5 +15,7 @@ def get_date_time():
 
 
 def get_uuid():
-
+    """
+    Get the uuid
+    """
     return str(uuid4())

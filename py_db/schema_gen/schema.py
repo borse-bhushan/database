@@ -1,21 +1,50 @@
+"""
+Responsible for dynamically generating and managing Marshmallow schema classes
+based on user-defined table definitions.
+
+This module provides methods to:
+- Load a schema class dynamically
+- Remove schema files
+- Generate Marshmallow field definitions with validations
+- Write schema classes to Python files at runtime
+"""
+
 import os
-
 import marshmallow
-
 from importlib import import_module
 
 from exc import TableSchemaNotExist
 
 
 class Schema:
+    """
+    Handles dynamic schema generation and loading for table definitions using Marshmallow.
+
+    Attributes:
+        import_path (str): Template path for importing table schema modules.
+        init_file (str): Path to the __init__.py for each database schema folder.
+        table_schema (str): Path to the generated schema file for a specific table.
+    """
 
     def __init__(self):
         self.import_path = "schema.{database}.{table}"
-
         self.init_file = "schema/{database}/__init__.py"
         self.table_schema = "schema/{database}/{table}.py"
 
     def get_schema(self, database, table) -> type[marshmallow.Schema]:
+        """
+        Dynamically import and return a Marshmallow schema class for the given table.
+
+        Args:
+            database (str): Name of the database.
+            table (str): Name of the table.
+
+        Returns:
+            Type[marshmallow.Schema]: The schema class for the table.
+
+        Raises:
+            TableSchemaNotExist: If the schema file or class does not exist.
+        """
         try:
             return getattr(
                 import_module(self.import_path.format(database=database, table=table)),
@@ -25,10 +54,30 @@ class Schema:
             raise TableSchemaNotExist(table) from exe
 
     def remove(self, database, table):
+        """
+        Delete the schema file for a specific table.
+
+        Args:
+            database (str): Name of the database.
+            table (str): Name of the table.
+
+        Returns:
+            bool: True if the file was successfully removed.
+        """
         os.remove(self.table_schema.format(database=database, table=table))
         return True
 
     def generate_marshmallow_field_code(self, field_name, field_spec):
+        """
+        Generate the Marshmallow field definition string from a field spec.
+
+        Args:
+            field_name (str): Name of the field.
+            field_spec (dict): Field specification including type, validations, etc.
+
+        Returns:
+            str: Marshmallow-compatible Python code defining the field.
+        """
         type_map = {
             "str": "fields.Str",
             "int": "fields.Int",
@@ -91,6 +140,15 @@ class Schema:
         return "\n".join(parts)
 
     def generate_validators(self, schema_def):
+        """
+        Generate code for the `get_unique` method based on schema uniqueness constraints.
+
+        Args:
+            schema_def (dict): Schema field definitions.
+
+        Returns:
+            list[str]: Lines of Python code defining the get_unique method.
+        """
         lines = []
         unique_fields = []
         for field_name, spec in schema_def.items():
@@ -102,7 +160,15 @@ class Schema:
         return lines
 
     def write_schema_class_to_file(self, class_name, schema_def, database, table):
+        """
+        Generate and write a complete Marshmallow schema class to a Python file.
 
+        Args:
+            class_name (str): The name of the schema class.
+            schema_def (dict): Dictionary of field definitions.
+            database (str): Target database name.
+            table (str): Target table name.
+        """
         file_path = self.table_schema.format(database=database, table=table)
 
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
