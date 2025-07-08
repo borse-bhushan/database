@@ -190,12 +190,6 @@ This ensures body-length safety and parsing integrity.
 
 ---
 
-## 📜 License
-
-This project is MIT licensed.
-
----
-
 ## 👨‍💻 Author
 
 - Bhushan Borse
